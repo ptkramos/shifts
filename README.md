@@ -23,7 +23,7 @@ Sem `.env.local` o app abre em **modo demonstração**, com os dados salvos só 
 
 ## Conectando ao Supabase
 
-1. Supabase → SQL Editor → cole e rode `supabase/migrations/001_init.sql`.
+1. Supabase → SQL Editor → cole e rode `supabase/migrations/20261110000000_init.sql`.
 2. Authentication → Sign In / Providers → Email: desative **Confirm email** (por enquanto).
 3. Copie `.env.example` para `.env.local` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Project Settings → API). **Nunca** use a chave `service_role` aqui.
 
