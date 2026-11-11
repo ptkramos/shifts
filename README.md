@@ -29,4 +29,15 @@ Sem `.env.local` o app abre em **modo demonstração**, com os dados salvos só 
 
 ## Instalar no celular
 
-PWA só instala por **HTTPS**, então é preciso fazer o deploy de `dist/`. No iPhone: abra no Safari → Compartilhar → "Adicionar à Tela de Início". No Android: o Chrome oferece "Instalar app".
+Abra **https://shifts.psoft.app**. No iPhone: Safari → Compartilhar → "Adicionar à Tela de Início". No Android: o Chrome oferece "Instalar app".
+
+## Deploy
+
+O site é estático (nginx servindo `dist/`). Com um `.env.deploy` local (fora do Git, veja o topo do script):
+
+```bash
+bash scripts/deploy.sh   # testes → build → envia → troca a versão de uma vez (a anterior fica como .old)
+```
+
+A configuração do nginx está em `deploy/nginx-shifts.conf`; o HTTPS é do Let's Encrypt com renovação automática.
+Migrações do banco (`supabase/migrations`) são aplicadas pelo Supabase a cada push na `main`.
