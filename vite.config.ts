@@ -7,16 +7,18 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // inclui a fonte (woff2) no cache para o app abrir com o visual certo mesmo offline
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'] },
       includeAssets: ['icon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'MyCalendar',
-        short_name: 'MyCalendar',
+        name: 'Shifts',
+        short_name: 'Shifts',
         description: 'Sua escala de trabalho e seus compromissos num lugar só.',
         lang: 'pt-BR',
         start_url: '/',
         display: 'standalone',
-        background_color: '#f6f7f9',
-        theme_color: '#2563eb',
+        background_color: '#f5f6f4',
+        theme_color: '#14b8a6',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },

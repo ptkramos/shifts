@@ -36,4 +36,6 @@ export interface CalEvent {
   start_time: string | null
   end_time: string | null
   note: string | null
+  /** id de um ícone de src/lib/eventIcons (null = sugerido pelo título) */
+  icon: string | null
 }

@@ -49,8 +49,11 @@ export function Login() {
   return (
     <main className="auth">
       <form className="auth-card" onSubmit={submit}>
-        <h1>MyCalendar</h1>
-        <p className="muted">Sua escala e seus compromissos num lugar só.</p>
+        <img className="auth-logo" src="/icon.svg" alt="" />
+        <div className="auth-head">
+          <h1>Shifts</h1>
+          <p className="lead">{mode === 'signin' ? 'Sua escala e seus compromissos num lugar só.' : 'Crie sua conta em segundos.'}</p>
+        </div>
 
         {mode === 'signup' && (
           <label className="field">
@@ -77,12 +80,14 @@ export function Login() {
         {error && <p className="error">{error}</p>}
         {info && <p className="info">{info}</p>}
 
-        <button className="btn primary block" disabled={busy}>
-          {busy ? 'Aguarde…' : mode === 'signin' ? 'Entrar' : 'Criar conta'}
-        </button>
+        <div className="press-room">
+          <button className="btn primary block" disabled={busy}>
+            {busy ? 'Aguarde…' : mode === 'signin' ? 'Entrar' : 'Criar conta'}
+          </button>
+        </div>
         <button
           type="button"
-          className="btn link block"
+          className="btn ghost block"
           onClick={() => {
             setMode(mode === 'signin' ? 'signup' : 'signin')
             setError(null)

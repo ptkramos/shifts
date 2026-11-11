@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
+import { ChevronLeft, LogOut, Monitor, Moon, Pencil, Plus, Sun, Trash2 } from 'lucide-react'
 import type { NewShiftType, Store } from '../data/store'
 import type { Pattern, ShiftType } from '../types'
 import { todayISO } from '../lib/dates'
 import { fmtShort, patternLabel, shiftHours } from '../lib/format'
+import { getTheme, setTheme, type Theme } from '../lib/theme'
 
 interface Props {
   store: Store
@@ -25,28 +27,74 @@ const PRESETS: [number, number][] = [
 
 const COLORS = ['#2563eb', '#7c3aed', '#db2777', '#dc2626', '#ea580c', '#16a34a', '#0891b2', '#475569']
 
+const shiftStyle = (color: string) => ({ '--shift': color }) as React.CSSProperties
+
 export function Settings(props: Props) {
   const { store, shiftTypes, patterns, account, signOutLabel, onSignOut, onChanged, onError, onBack } = props
   return (
-    <div className="app settings">
+    <div className="app">
       <header className="topbar">
         <button className="icon-btn" onClick={onBack} aria-label="Voltar">
-          ‹
+          <ChevronLeft size={22} strokeWidth={3} />
         </button>
-        <h1 className="month-title">Configurações</h1>
+        <h1 className="title">
+          <small>Shifts</small>
+          <span className="ellipsis">Configurações</span>
+        </h1>
       </header>
 
-      <PatternSection store={store} shiftTypes={shiftTypes} patterns={patterns} onChanged={onChanged} onError={onError} />
-      <ShiftTypesSection store={store} shiftTypes={shiftTypes} onChanged={onChanged} onError={onError} />
-
-      <section className="card">
-        <h2>Conta</h2>
-        <p className="muted">{account}</p>
-        <button className="btn" onClick={onSignOut}>
-          {signOutLabel ?? 'Sair'}
-        </button>
-      </section>
+      <main className="content">
+        <PatternSection store={store} shiftTypes={shiftTypes} patterns={patterns} onChanged={onChanged} onError={onError} />
+        <ShiftTypesSection store={store} shiftTypes={shiftTypes} onChanged={onChanged} onError={onError} />
+        <ThemeSection />
+        <section className="card stack">
+          <div>
+            <h2>Conta</h2>
+            <p className="hint">{account}</p>
+          </div>
+          <div className="press-room">
+            <button className="btn block" onClick={onSignOut}>
+              <LogOut size={20} strokeWidth={2.5} /> {signOutLabel ?? 'Sair'}
+            </button>
+          </div>
+        </section>
+      </main>
     </div>
+  )
+}
+
+function ThemeSection() {
+  const [theme, setLocal] = useState<Theme>(getTheme)
+  const options: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: 'auto', label: 'Auto', icon: <Monitor size={18} strokeWidth={2.5} /> },
+    { value: 'light', label: 'Claro', icon: <Sun size={18} strokeWidth={2.5} /> },
+    { value: 'dark', label: 'Escuro', icon: <Moon size={18} strokeWidth={2.5} /> },
+  ]
+  return (
+    <section className="card stack">
+      <div>
+        <h2>Aparência</h2>
+        <p className="hint">"Auto" segue o tema do seu celular.</p>
+      </div>
+      <div className="press-room">
+        <div className="segmented" role="radiogroup" aria-label="Tema">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              role="radio"
+              aria-checked={theme === o.value}
+              className={theme === o.value ? 'on' : ''}
+              onClick={() => {
+                setTheme(o.value)
+                setLocal(o.value)
+              }}
+            >
+              {o.icon} {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -63,6 +111,7 @@ function PatternSection({
   const [typeId, setTypeId] = useState('')
   const [busy, setBusy] = useState(false)
   const effectiveType = typeId || shiftTypes[0]?.id || ''
+  const typesById = new Map(shiftTypes.map((s) => [s.id, s]))
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -78,46 +127,61 @@ function PatternSection({
     }
   }
 
-  const typeName = (id: string) => shiftTypes.find((s) => s.id === id)?.name ?? '?'
-
   return (
-    <section className="card">
-      <h2>Escala</h2>
+    <section className="card stack">
+      <div>
+        <h2>Escala</h2>
+        <p className="hint">
+          Vale a partir da data escolhida. Se sua escala mudar, crie uma nova: o passado e os dias editados à mão
+          continuam como estão.
+        </p>
+      </div>
+
       {patterns.length > 0 && (
         <ul className="list">
-          {[...patterns].reverse().map((p) => (
-            <li key={p.id}>
-              <div>
-                <strong>{patternLabel(p)}</strong> · {typeName(p.shift_type_id)}
-                <div className="muted small">a partir de {fmtShort(p.anchor_date)}</div>
-              </div>
-              <button
-                className="icon-btn danger"
-                aria-label="Apagar escala"
-                onClick={async () => {
-                  if (!confirm(`Apagar a escala ${patternLabel(p)} que começa em ${fmtShort(p.anchor_date)}?`)) return
-                  try {
-                    await store.deletePattern(p.id)
-                    onChanged()
-                  } catch (err) {
-                    onError(err)
-                  }
-                }}
-              >
-                🗑
-              </button>
-            </li>
-          ))}
+          {[...patterns].reverse().map((p) => {
+            const st = typesById.get(p.shift_type_id)
+            return (
+              <li key={p.id}>
+                <span className="badge" style={shiftStyle(st?.color ?? '#888')}>
+                  {st?.code}
+                </span>
+                <div className="grow">
+                  <strong className="ellipsis tnum">
+                    {patternLabel(p)} · {st?.name ?? '?'}
+                  </strong>
+                  <div className="muted small tnum">A partir de {fmtShort(p.anchor_date)}</div>
+                </div>
+                <button
+                  className="icon-btn flat danger"
+                  aria-label={`Apagar escala ${patternLabel(p)}`}
+                  onClick={async () => {
+                    if (!confirm(`Apagar a escala ${patternLabel(p)} que começa em ${fmtShort(p.anchor_date)}?`)) return
+                    try {
+                      await store.deletePattern(p.id)
+                      onChanged()
+                    } catch (err) {
+                      onError(err)
+                    }
+                  }}
+                >
+                  <Trash2 size={20} strokeWidth={2.5} />
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
 
-      <form onSubmit={submit} className="stack">
-        <h3>{patterns.length ? 'Nova escala' : 'Configurar escala'}</h3>
-        <div className="presets">
+      <form onSubmit={submit} className="form">
+        <h3 className="section-title">{patterns.length ? 'Nova escala' : 'Configurar escala'}</h3>
+        <div className="presets" role="radiogroup" aria-label="Escalas comuns">
           {PRESETS.map(([a, b]) => (
             <button
               type="button"
               key={`${a}x${b}`}
+              role="radio"
+              aria-checked={on === a && off === b}
               className={`chip ${on === a && off === b ? 'on' : ''}`}
               onClick={() => {
                 setOn(a)
@@ -128,18 +192,18 @@ function PatternSection({
             </button>
           ))}
         </div>
-        <div className="row">
+        <div className="row-2">
           <label className="field">
             <span>Horas trabalhando</span>
-            <input type="number" min={1} max={72} value={on} onChange={(e) => setOn(Number(e.target.value))} required />
+            <input type="number" inputMode="numeric" min={1} max={72} value={on} onChange={(e) => setOn(Number(e.target.value))} required />
           </label>
           <label className="field">
             <span>Horas de folga</span>
-            <input type="number" min={1} max={336} value={off} onChange={(e) => setOff(Number(e.target.value))} required />
+            <input type="number" inputMode="numeric" min={1} max={336} value={off} onChange={(e) => setOff(Number(e.target.value))} required />
           </label>
         </div>
         <label className="field">
-          <span>Data de um plantão seu (início da escala)</span>
+          <span>Data de um plantão seu</span>
           <input type="date" value={anchor} onChange={(e) => setAnchor(e.target.value)} required />
         </label>
         <label className="field">
@@ -152,13 +216,11 @@ function PatternSection({
             ))}
           </select>
         </label>
-        <p className="muted small">
-          A escala vale a partir dessa data. Se um dia sua escala mudar, crie uma nova com a nova data: o passado e os dias
-          que você editou à mão continuam como estão.
-        </p>
-        <button className="btn primary" disabled={busy || !effectiveType}>
-          Salvar escala
-        </button>
+        <div className="press-room">
+          <button className="btn primary block" disabled={busy || !effectiveType}>
+            Salvar escala
+          </button>
+        </div>
       </form>
     </section>
   )
@@ -187,29 +249,34 @@ function ShiftTypesSection({
   }
 
   return (
-    <section className="card">
-      <h2>Tipos de turno</h2>
+    <section className="card stack">
+      <div>
+        <h2>Tipos de turno</h2>
+        <p className="hint">A sigla aparece no calendário. Use até 3 letras.</p>
+      </div>
+
       <ul className="list">
         {shiftTypes.map((s) => (
           <li key={s.id}>
-            <span className="code" style={{ '--shift': s.color } as React.CSSProperties}>
+            <span className="badge" style={shiftStyle(s.color)}>
               {s.code}
             </span>
             <div className="grow">
-              <strong>{s.name}</strong>
-              <div className="muted small">{shiftHours(s)}</div>
+              <strong className="ellipsis">{s.name}</strong>
+              <div className="muted small tnum">{shiftHours(s)}</div>
             </div>
-            <button className="btn small" onClick={() => setEditing(s)}>
-              Editar
+            <button className="icon-btn flat" onClick={() => setEditing(s)} aria-label={`Editar ${s.name}`}>
+              <Pencil size={20} strokeWidth={2.5} />
             </button>
           </li>
         ))}
       </ul>
 
       {editing ? (
-        <form onSubmit={submit} className="stack">
+        <form onSubmit={submit} className="form">
+          <h3 className="section-title">{editing.id ? 'Editar turno' : 'Novo turno'}</h3>
           <div className="row">
-            <label className="field grow">
+            <label className="field">
               <span>Nome</span>
               <input
                 value={editing.name}
@@ -225,10 +292,11 @@ function ShiftTypesSection({
                 onChange={(e) => setEditing({ ...editing, code: e.target.value })}
                 required
                 maxLength={3}
+                autoCapitalize="characters"
               />
             </label>
           </div>
-          <div className="row">
+          <div className="row-2">
             <label className="field">
               <span>Início</span>
               <input
@@ -248,25 +316,30 @@ function ShiftTypesSection({
               />
             </label>
           </div>
-          <div className="colors">
-            {COLORS.map((c) => (
-              <button
-                type="button"
-                key={c}
-                className={`color ${editing.color === c ? 'on' : ''}`}
-                style={{ background: c }}
-                aria-label={`Cor ${c}`}
-                onClick={() => setEditing({ ...editing, color: c })}
-              />
-            ))}
+          <div className="field">
+            <span>Cor</span>
+            <div className="colors" role="radiogroup" aria-label="Cor">
+              {COLORS.map((c) => (
+                <button
+                  type="button"
+                  key={c}
+                  role="radio"
+                  aria-checked={editing.color === c}
+                  className={`color ${editing.color === c ? 'on' : ''}`}
+                  style={{ background: c }}
+                  aria-label={`Cor ${c}`}
+                  onClick={() => setEditing({ ...editing, color: c })}
+                />
+              ))}
+            </div>
           </div>
-          <div className="row">
+          <div className="actions">
             {editing.id && (
               <button
                 type="button"
                 className="btn danger"
                 onClick={async () => {
-                  if (!confirm(`Apagar o tipo "${editing.name}"?`)) return
+                  if (!confirm(`Apagar o turno "${editing.name}"?`)) return
                   try {
                     await store.deleteShiftType(editing.id!)
                     setEditing(null)
@@ -279,7 +352,6 @@ function ShiftTypesSection({
                 Apagar
               </button>
             )}
-            <div className="spacer" />
             <button type="button" className="btn" onClick={() => setEditing(null)}>
               Cancelar
             </button>
@@ -287,9 +359,11 @@ function ShiftTypesSection({
           </div>
         </form>
       ) : (
-        <button className="btn block" onClick={() => setEditing({ ...EMPTY })}>
-          + Novo tipo de turno
-        </button>
+        <div className="press-room">
+          <button className="btn block" onClick={() => setEditing({ ...EMPTY })}>
+            <Plus size={20} strokeWidth={3} /> Novo tipo de turno
+          </button>
+        </div>
       )}
     </section>
   )

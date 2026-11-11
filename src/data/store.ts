@@ -82,7 +82,7 @@ export function createSupabaseStore(sb: SupabaseClient, userId: string): Store {
     },
     async listEvents(from, to) {
       return check(
-        await sb.from('events').select('id,title,date,start_time,end_time,note').gte('date', from).lte('date', to).order('start_time'),
+        await sb.from('events').select('id,title,date,start_time,end_time,note,icon').gte('date', from).lte('date', to).order('start_time'),
       ).map(normEv)
     },
     async saveEvent(e) {

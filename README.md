@@ -1,4 +1,4 @@
-# MyCalendar
+# Shifts
 
 PWA gratuito para escala de trabalho (12x60, 12x36, 24x48…) e compromissos. Feito para substituir o Shifty.
 

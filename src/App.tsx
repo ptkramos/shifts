@@ -25,8 +25,11 @@ function writeDemo(on: boolean) {
   }
 }
 
+// Só em desenvolvimento: http://localhost:5173/?demo abre o modo demonstração mesmo com Supabase configurado.
+const forceDemo = import.meta.env.DEV && new URLSearchParams(location.search).has('demo')
+
 export default function App() {
-  return supabase ? <WithAuth /> : <DemoGate />
+  return supabase && !forceDemo ? <WithAuth /> : <DemoGate />
 }
 
 function WithAuth() {

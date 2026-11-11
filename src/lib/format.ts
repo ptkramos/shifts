@@ -17,3 +17,5 @@ export function fmtHours(startMinutes: number, durationMinutes: number) {
 export const patternLabel = (p: Pattern) => `${p.on_hours}x${p.off_hours}`
 
 export const shiftHours = (st: ShiftType) => `${st.start_time}–${st.end_time}`
+
+export const fmtMonthName = (m: number) => format(new Date(2000, m - 1, 1), 'MMMM', { locale: ptBR })

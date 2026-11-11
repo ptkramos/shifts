@@ -3,15 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>MyCalendar</title>
+    <title>Shifts</title>
     <meta name="description" content="Sua escala de trabalho e seus compromissos num lugar só." />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f6f4" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121212" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="MyCalendar" />
+    <meta name="apple-mobile-web-app-title" content="Shifts" />
+    <script>
+      // Aplica o tema escolhido antes de desenhar a tela (evita piscar a cor errada).
+      try {
+        var t = localStorage.getItem('shifts-theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
